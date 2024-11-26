@@ -5,14 +5,15 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
+# Crear la instancia de la API
 app = FastAPI()
 
-# Variables globales
+# Variables globales para modelo y escalador
 modelo = None
 scaler = None
 COLUMNAS_RELEVANTES = ["LIMIT_BAL", "AGE", "PAY_0", "SEX", "EDUCATION", "MARRIAGE"]
 
-# Entrenar el modelo
+# Entrenar el modelo y el escalador con datos ficticios
 datos_ficticios = pd.DataFrame({
     "LIMIT_BAL": [200000, 50000, 300000],
     "AGE": [30, 50, 40],
@@ -22,6 +23,8 @@ datos_ficticios = pd.DataFrame({
     "MARRIAGE": [1, 2, 2],
     "default.payment.next.month": [0, 1, 0]
 })
+
+# Entrenamiento del modelo
 scaler = StandardScaler()
 X = datos_ficticios[COLUMNAS_RELEVANTES]
 y = datos_ficticios["default.payment.next.month"]
@@ -38,21 +41,27 @@ class InputData(BaseModel):
     EDUCATION: int
     MARRIAGE: int
 
+# Endpoint raíz
+@app.get("/")
+def root():
+    return {"message": "Bienvenido a la API. Usa /docs para la documentación."}
+
+# Endpoint de estado de salud
 @app.get("/health")
 def health():
     return {"status": "OK"}
 
+# Endpoint para predicciones
 @app.post("/predict")
 def predict(data: InputData):
-    global modelo, scaler
     try:
-        if modelo is None or scaler is None:
-            return {"error": "Modelo no está entrenado. Revisa los logs."}
-        
+        # Transformar datos de entrada
         nueva_data = pd.DataFrame([[data.LIMIT_BAL, data.AGE, data.PAY_0,
                                     data.SEX, data.EDUCATION, data.MARRIAGE]],
                                   columns=COLUMNAS_RELEVANTES)
         nueva_data_scaled = scaler.transform(nueva_data)
+
+        # Hacer predicción
         probabilidad = modelo.predict_proba(nueva_data_scaled)[0][1]
         riesgo = (
             "BAJO" if probabilidad <= 0.35
