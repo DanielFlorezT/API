@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# config.py
-from pydantic import BaseSettings, AnyHttpUrl
+from pydantic_settings import BaseSettings  # Cambiado para soportar pydantic 2.x
+from pydantic import AnyHttpUrl
 from typing import List
 
 class Settings(BaseSettings):
