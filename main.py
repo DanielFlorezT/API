@@ -1,45 +1,48 @@
+# -*- coding: utf-8 -*-
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from loguru import logger
 from config import settings, setup_app_logging
-from api import app as api_app  # Importa tu API definida en api.py
+from api import app as api_app  # Importar las rutas de tu API
 
-# Configurar logging antes de inicializar la aplicaci髇
+# Configurar logging antes de iniciar la aplicaci贸n
 setup_app_logging(settings)
 
-# Inicializar FastAPI con configuraci髇 personalizada
+# Inicializar la aplicaci贸n FastAPI
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Definir rutas para la ra韟 y otras funcionalidades
+# Rutas principales
 root_router = APIRouter()
 
 @root_router.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    """P醙ina de bienvenida personalizada."""
+    """P谩gina de bienvenida."""
     html_content = """
     <html>
         <head>
-            <title>Welcome to Banckchurn API</title>
+            <title>Banckchurn API</title>
         </head>
-        <body style='font-family: Arial, sans-serif;'>
+        <body style="font-family: Arial, sans-serif;">
             <h1>Welcome to Banckchurn API</h1>
-            <p>Check the docs: <a href="/docs">here</a></p>
-            <p>Swagger UI: <a href="/docs">Swagger</a></p>
-            <p>Redoc: <a href="/redoc">Redoc</a></p>
+            <p>Check the documentation:</p>
+            <ul>
+                <li><a href="/docs">Swagger UI</a></li>
+                <li><a href="/redoc">Redoc</a></li>
+            </ul>
         </body>
     </html>
     """
     return HTMLResponse(content=html_content)
 
-# Incluir las rutas de la API desde api.py
+# Incluir las rutas de la API
 app.include_router(api_app.router, prefix=settings.API_V1_STR)
 app.include_router(root_router)
 
-# Configuraci髇 de CORS
+# Configuraci贸n de CORS
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
@@ -50,7 +53,7 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 if __name__ == "__main__":
-    # Ejecutar el servidor en modo desarrollo
+    # Ejecutar la aplicaci贸n en modo desarrollo
     import uvicorn
-    logger.warning("Iniciando en modo desarrollo.")
+    logger.warning("Iniciando la aplicaci贸n en modo desarrollo.")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
