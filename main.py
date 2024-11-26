@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from api import app as api_app  # Importa la aplicación desde api.py
