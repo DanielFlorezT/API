@@ -1,16 +1,36 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-app = FastAPI()  # Define el objeto 'app' aquí
+app = FastAPI()
 
 # Variables globales
 modelo = None
 scaler = None
 COLUMNAS_RELEVANTES = ["LIMIT_BAL", "AGE", "PAY_0", "SEX", "EDUCATION", "MARRIAGE"]
+
+# Entrenar el modelo y el escalador
+datos_ficticios = pd.DataFrame({
+    "LIMIT_BAL": [200000, 50000, 300000],
+    "AGE": [30, 50, 40],
+    "PAY_0": [0, 2, -1],
+    "SEX": [1, 2, 1],
+    "EDUCATION": [2, 1, 3],
+    "MARRIAGE": [1, 2, 2],
+    "default.payment.next.month": [0, 1, 0]
+})
+
+scaler = StandardScaler()
+X = datos_ficticios[COLUMNAS_RELEVANTES]
+y = datos_ficticios["default.payment.next.month"]
+X_scaled = scaler.fit_transform(X)
+
+modelo = LogisticRegression(max_iter=500, penalty="l2", solver="saga")
+modelo.fit(X_scaled, y)
 
 # Clase para datos de entrada
 class InputData(BaseModel):
@@ -20,6 +40,10 @@ class InputData(BaseModel):
     SEX: int
     EDUCATION: int
     MARRIAGE: int
+
+@app.get("/")
+def root():
+    return {"message": "Bienvenido a la API. Usa /docs para la documentación."}
 
 @app.get("/health")
 def health():
@@ -32,7 +56,6 @@ def predict(data: InputData):
         if modelo is None or scaler is None:
             return {"error": "Modelo no está entrenado. Revisa los logs."}
         
-        # Transformar datos
         nueva_data = pd.DataFrame([[
             data.LIMIT_BAL, data.AGE, data.PAY_0,
             data.SEX, data.EDUCATION, data.MARRIAGE
@@ -49,3 +72,4 @@ def predict(data: InputData):
         return {"probabilidad": round(probabilidad, 2), "riesgo": riesgo}
     except Exception as e:
         return {"error": f"No se pudo procesar la prediccion: {e}"}
+
