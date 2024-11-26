@@ -4,5 +4,4 @@ boto3
 pandas
 scikit-learn
 loguru
-pydantic-settings
-
+pydantic-settings==2.0.3
