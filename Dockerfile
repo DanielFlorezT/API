@@ -1,5 +1,4 @@
 FROM python:3.10
-
 # Establecer directorio de trabajo
 WORKDIR /app
 
