@@ -1,39 +1,43 @@
+# -*- coding: utf-8 -*-
 import logging
 import sys
 from typing import List
 from pydantic import BaseSettings, AnyHttpUrl
 from loguru import logger
 
-# Configuraci髇 de la API y logging
+# Configuraci贸n de logging
 class LoggingSettings(BaseSettings):
-    LOGGING_LEVEL: int = logging.INFO  # Nivel de logging
+    LOGGING_LEVEL: int = logging.INFO  # Nivel de logging predeterminado
 
+# Configuraci贸n general del proyecto
 class Settings(BaseSettings):
-    API_V1_STR: str = "/api/v1"  # Ruta base para la API
-    PROJECT_NAME: str = "Banckchurn API"  # Nombre del proyecto
-
-    # Configuraci髇 CORS (para permitir peticiones desde ciertos or韌enes)
+    API_V1_STR: str = "/api/v1"  # Prefijo para los endpoints
+    PROJECT_NAME: str = "Banckchurn API"
+    
+    # Configuraci贸n de CORS: Permitir or铆genes espec铆ficos para desarrollo o producci贸n
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+        "http://localhost:8000",  # Desarrollo local
         "http://localhost:3000",
-        "http://localhost:8000",
-        "https://localhost:3000",
-        "https://localhost:8000",
     ]
 
-    # Clase interna para sensibilidad a may鷖culas/min鷖culas
+    logging: LoggingSettings = LoggingSettings()  # Configuraci贸n del logging
+
     class Config:
         case_sensitive = True
 
-# Configuraci髇 global de la aplicaci髇
-settings = Settings()
-
-# Configuraci髇 del logger usando Loguru
-def setup_app_logging(config: Settings) -> None:
-    """Configura el logging para la aplicaci髇."""
-    logging.getLogger().handlers = [InterceptHandler()]
-    logger.configure(handlers=[{"sink": sys.stderr, "level": config.LOGGING_LEVEL}])
-
+# Configuraci贸n de loggers personalizados
 class InterceptHandler(logging.Handler):
-    """Intercepta mensajes de logging de otros m骴ulos."""
     def emit(self, record: logging.LogRecord) -> None:
-        logger.opt(exception=record.exc_info).log(record.levelname, record.getMessage())
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = str(record.levelno)
+        logger.opt(depth=2, exception=record.exc_info).log(level, record.getMessage())
+
+def setup_app_logging(config: Settings) -> None:
+    """Configura el logging de la aplicaci贸n."""
+    logging.getLogger().handlers = [InterceptHandler()]
+    logger.configure(handlers=[{"sink": sys.stderr, "level": config.logging.LOGGING_LEVEL}])
+
+# Instancia global de configuraci贸n
+settings = Settings()
