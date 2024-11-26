@@ -2,7 +2,8 @@
 import logging
 import sys
 from typing import List
-from pydantic import BaseSettings, AnyHttpUrl
+from pydantic_settings import BaseSettings  # Cambiado a pydantic-settings
+from pydantic import AnyHttpUrl
 from loguru import logger
 
 # Configuración de logging
@@ -41,3 +42,4 @@ def setup_app_logging(config: Settings) -> None:
 
 # Instancia global de configuración
 settings = Settings()
+
