@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from api import app as api_app  # Importa la aplicación desde api.py
+from config import settings
+from api import router  # Importamos el router definido en api.py
 
-# Crear la instancia principal
+# Crear la instancia de la aplicación
 app = FastAPI(
-    title="API de Proyecto Final",
-    description="API para predicción de riesgo de incumplimiento en clientes de tarjetas de crédito.",
-    version="0.1.0",
-    openapi_url="/api/v1/openapi.json"  # URL de la documentación
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    description="API para el proyecto final con endpoints para predicción y estado de salud.",
+    version="0.1.0"
 )
 
-# Montar las rutas de la API principal
-app.mount("/", api_app)
-
-# Ruta raíz personalizada
+# Ruta raíz con HTML
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     """
@@ -26,12 +24,22 @@ def read_root():
         "<h1>Bienvenido a la API de Proyecto Final</h1>"
         "<div>"
         "Accede a la documentación en: <a href='/docs'>Swagger UI</a><br>"
-        "Revisa el estado de salud en: <a href='/health'>/health</a><br>"
-        "Realiza predicciones en: <a href='/predict'>/predict</a>"
+        "Revisa el estado de salud en: <a href='/health'>/health</a>"
         "</div>"
         "</body>"
         "</html>"
     )
     return body
+
+# Ruta de estado de salud
+@app.get("/health")
+def health_check():
+    """
+    Verifica si la API está corriendo correctamente.
+    """
+    return {"status": "ok"}
+
+# Incluir el router de `api.py`
+app.include_router(router, prefix=settings.API_V1_STR)
 
 
